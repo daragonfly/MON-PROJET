@@ -27,15 +27,18 @@ sequelize.sync({ force: false })
   console.error('❌ Error synchronizing database:', err.message);
 });
 
-// Route pour créer un utilisateur
 app.get('/api/users', async (req: Request, res: Response) => {
-    try {
-      const users = await User.findAll();
-      res.json(users);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch users' });
-    }
-  });
+  try {
+    const users = await User.findAll();
+    console.log('Users fetched:', users); // Ajoute ce log pour vérifier
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
+
 app.get('/', (req, res) => {
   res.send('Welcome to the API');
 });

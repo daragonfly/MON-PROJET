@@ -50,7 +50,7 @@ const insertUser = async () => {
     // Créer un utilisateur
     const user = await User.create({
       username: 'John Doe',
-      email: 'john.doe@example.com',
+      email: 'john.doe.com',
       password: 'password123',  // Assure-toi de hasher les mots de passe dans un vrai cas d'utilisation
       points: 100,
     });
@@ -66,3 +66,4 @@ const insertUser = async () => {
 
 // Exécuter la fonction pour insérer un utilisateur
 //insertUser();
+
