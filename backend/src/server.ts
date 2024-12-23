@@ -1,7 +1,5 @@
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-import speakeasy from 'speakeasy'; // MFA
-import qr from 'qr-image'; // Utilisation de qr-image pour générer le QR code
 import sequelize from './config/sequelize'; // Importer l'instance Sequelize
 import User from './models/User';  
 import bcrypt from 'bcryptjs';
