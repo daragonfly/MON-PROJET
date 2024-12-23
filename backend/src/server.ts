@@ -35,18 +35,162 @@ app.get('/api/users', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
-
-
 app.get('/', (req, res) => {
   res.send('Welcome to the API');
 });
-
 app.get('/api/package', (req, res) => {
   res.json({
     message: 'Here is your package data!',
     packages: ['package1', 'package2', 'package3'],
   });
 });
+app.post('/api/users', async (req: Request, res: Response):Promise <void> => {
+  const { username, email, password, points } = req.body;
+
+  // Vérifier que tous les champs nécessaires sont présents
+  if (!username || !email || !password) {
+    res.status(400).json({ message: 'Username, email, and password are required.' });
+    return;
+  }
+
+  try {
+    // Vérifier si l'email existe déjà
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: 'Email already in use' });
+      return ;
+    }
+
+    // Hacher le mot de passe avant de l'enregistrer
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Créer l'utilisateur
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      points: points || 0, // Valeur par défaut pour points
+    });
+
+    // Réponse avec l'utilisateur créé (sans le mot de passe)
+    res.status(201).json({
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      points: newUser.points,
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la création de l\'utilisateur:', error);
+    res.status(500).json({ message: 'Failed to create user' });
+  }
+});
+app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
+  const { username, email, password } = req.body;
+
+  // Vérifier que tous les champs nécessaires sont présents
+  if (!username || !email || !password) {
+    res.status(400).json({ message: 'Username, email, and password are required.' });
+    return;
+  }
+
+  try {
+    // Vérifier si l'email existe déjà
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: 'Email already in use' });
+      return;
+    }
+
+    // Hacher le mot de passe avant de l'enregistrer
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Créer l'utilisateur
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      points: 0, // Points par défaut
+    });
+
+    // Répondre avec l'utilisateur créé (sans le mot de passe)
+    res.status(201).json({
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      points: newUser.points,
+    });
+  } catch (error) {
+    console.error('Error during user creation:', error);
+    res.status(500).json({ message: 'Failed to create user' });
+  }
+});
+
+
+// Route pour connecter un utilisateur (login)
+app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400).json({ message: 'All fields are required.' });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ where: { email } });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      res.status(401).json({ message: 'Invalid email or password.' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: { id: user.id, username: user.username, email: user.email, points: user.points },
+    });
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    res.status(500).json({ message: 'Failed to log in user' });
+  }
+});
+
+// Route pour mettre à jour les points d'un utilisateur
+app.put('/api/users/:id/points', async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findByPk(id);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found.' });
+      return;
+    }
+
+    user.points += 1; // Incrémenter les points
+    await user.save();
+
+    res.status(200).json({ message: 'Points updated successfully.', points: user.points });
+  } catch (error) {
+    console.error('Error updating points:', error);
+    res.status(500).json({ message: 'Failed to update points.' });
+  }
+});
+
+// Route pour récupérer le leaderboard
+app.get('/api/leaderboard', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const leaderboard = await User.findAll({
+      order: [['points', 'DESC']], // Tri par points décroissants
+      attributes: ['id', 'username', 'points'], // Sélectionner les colonnes nécessaires
+    });
+
+    res.status(200).json(leaderboard);
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ message: 'Failed to fetch leaderboard.' });
+  }
+});
+
 // Lancer le serveur
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
