@@ -47,7 +47,6 @@ app.get('/api/package', (req, res) => {
     packages: ['package1', 'package2', 'package3'],
   });
 });
-
 // Lancer le serveur
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
