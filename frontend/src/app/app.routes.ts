@@ -1,17 +1,14 @@
-import { Routes } from '@angular/router';
-import { provideRouter } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { AuthComponent } from '../pages/auth/auth.component';
-import { GameComponent } from '../pages/game/game.component';
-import { LeaderboardComponent } from '../pages/leaderboard/leaderboard.component';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { UsersComponent } from './users/users.component';
 
-export const routes: Routes = [
-  { path: '', redirectTo: '/auth', pathMatch: 'full' }, // Page par défaut
-  { path: 'auth', component: AuthComponent },
-  { path: 'game', component: GameComponent },
-  { path: 'leaderboard', component: LeaderboardComponent },
+export const appRoutes: Routes = [
+  { path: 'users', component: UsersComponent },
+  { path: '', redirectTo: '/users', pathMatch: 'full' },
 ];
 
-export const appRoutingProviders = [
-  provideRouter(routes)
-];
+@NgModule({
+  imports: [RouterModule.forRoot(appRoutes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }

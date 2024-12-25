@@ -3,13 +3,15 @@ import * as dotenv from 'dotenv';
 import sequelize from './config/sequelize'; // Importer l'instance Sequelize
 import User from './models/User';  
 import bcrypt from 'bcryptjs';
-
+import jwt from 'jsonwebtoken';
 dotenv.config(); // Charger les variables d'environnement
 
-// Initialiser l'application Express
+const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3010;
 
+app.use(cors());
+// Initialiser l'application Express
+const port = process.env.PORT || 3010;
 app.use(express.json());
 
 sequelize.authenticate()
@@ -126,8 +128,6 @@ app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-
-// Route pour connecter un utilisateur (login)
 app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
@@ -144,6 +144,7 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Réponse sans token (tu peux ajouter un message de succès simple)
     res.status(200).json({
       message: 'Login successful',
       user: { id: user.id, username: user.username, email: user.email, points: user.points },
@@ -154,27 +155,42 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// Route pour mettre à jour les points d'un utilisateur
 app.put('/api/users/:id/points', async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
+  const { email, password } = req.body; // On suppose que l'utilisateur se reconnecte avant de modifier ses points
+
+  if (!email || !password) {
+    res.status(400).json({ message: 'Email and password are required.' });
+    return;
+  }
 
   try {
-    const user = await User.findByPk(id);
+    // Vérification des informations d'identification
+    const user = await User.findOne({ where: { email } });
 
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      res.status(401).json({ message: 'Invalid email or password.' });
+      return;
+    }
+
+    // Si l'utilisateur est authentifié, mise à jour des points
+    const targetUser = await User.findByPk(id);
+
+    if (!targetUser) {
       res.status(404).json({ message: 'User not found.' });
       return;
     }
 
-    user.points += 1; // Incrémenter les points
-    await user.save();
+    targetUser.points += 1; // Incrémenter les points
+    await targetUser.save();
 
-    res.status(200).json({ message: 'Points updated successfully.', points: user.points });
+    res.status(200).json({ message: 'Points updated successfully.', points: targetUser.points });
   } catch (error) {
     console.error('Error updating points:', error);
     res.status(500).json({ message: 'Failed to update points.' });
   }
 });
+
 
 // Route pour récupérer le leaderboard
 app.get('/api/leaderboard', async (req: Request, res: Response): Promise<void> => {

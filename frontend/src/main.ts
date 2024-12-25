@@ -1,10 +1,11 @@
+import { enableProdMode } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
 import { AppComponent } from './app/app.component';
-import { routes } from './app/app.routes';
+import { environment } from './src/environments/environment';
+import { appConfig } from './app/app.config';
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideRouter(routes) // Injection des routes
-  ]
-}).catch(err => console.error(err));
+if (environment.production) {
+  enableProdMode();
+}
+
+bootstrapApplication(AppComponent, appConfig).catch(err => console.error(err));
