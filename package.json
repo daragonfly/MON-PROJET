@@ -4,10 +4,12 @@
     "ag-grid-community": "^33.0.3",
     "dotenv": "^16.4.7",
     "highcharts": "^12.1.2",
+    "jwt-decode": "^4.0.0",
     "pg": "^8.13.1",
     "pg-hstore": "^2.3.4",
     "pg-pool": "^3.7.0",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
     "@types/sequelize": "^4.28.20"

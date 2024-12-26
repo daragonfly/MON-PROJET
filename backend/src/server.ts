@@ -1,9 +1,10 @@
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
 import sequelize from './config/sequelize'; // Importer l'instance Sequelize
-import User from './models/User';  
+import User from './models/User';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize'; // Importer Op depuis Sequelize
 dotenv.config(); // Charger les variables d'environnement
 
 const cors = require('cors');
@@ -18,14 +19,13 @@ sequelize.authenticate()
   .then(() => console.log('✅ Sequelize connected to PostgreSQL'))
   .catch((err) => console.error('❌ Sequelize connection error:', err.message));
 
-
 sequelize.sync({ force: false })
-.then(() => {
-  console.log('✅ Database & tables synchronized');
-})
-.catch((err) => {
-  console.error('❌ Error synchronizing database:', err.message);
-});
+  .then(() => {
+    console.log('✅ Database & tables synchronized');
+  })
+  .catch((err) => {
+    console.error('❌ Error synchronizing database:', err.message);
+  });
 
 app.get('/api/users', async (req: Request, res: Response) => {
   try {
@@ -37,16 +37,19 @@ app.get('/api/users', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
+
 app.get('/', (req, res) => {
   res.send('Welcome to the API');
 });
+
 app.get('/api/package', (req, res) => {
   res.json({
     message: 'Here is your package data!',
     packages: ['package1', 'package2', 'package3'],
   });
 });
-app.post('/api/users', async (req: Request, res: Response):Promise <void> => {
+
+app.post('/api/users', async (req: Request, res: Response): Promise<void> => {
   const { username, email, password, points } = req.body;
 
   // Vérifier que tous les champs nécessaires sont présents
@@ -60,7 +63,7 @@ app.post('/api/users', async (req: Request, res: Response):Promise <void> => {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: 'Email already in use' });
-      return ;
+      return;
     }
 
     // Hacher le mot de passe avant de l'enregistrer
@@ -87,6 +90,7 @@ app.post('/api/users', async (req: Request, res: Response):Promise <void> => {
     res.status(500).json({ message: 'Failed to create user' });
   }
 });
+
 app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
   const { username, email, password } = req.body;
 
@@ -129,24 +133,27 @@ app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
 });
 
 app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
 
-  if (!email || !password) {
-    res.status(400).json({ message: 'All fields are required.' });
+  if (!identifier || !password) {
+    res.status(400).json({ message: 'Identifier and password are required.' });
     return;
   }
 
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { [Op.or]: [{ username: identifier }, { email: identifier }] } });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      res.status(401).json({ message: 'Invalid email or password.' });
+      res.status(401).json({ message: 'Invalid identifier or password.' });
       return;
     }
 
-    // Réponse sans token (tu peux ajouter un message de succès simple)
+    // Générer un token JWT
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your_jwt_secret', { expiresIn: '1h' });
+
+    // Réponse avec le token
     res.status(200).json({
-      message: 'Login successful',
+      token,
       user: { id: user.id, username: user.username, email: user.email, points: user.points },
     });
   } catch (error) {
@@ -157,34 +164,25 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
 
 app.put('/api/users/:id/points', async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { email, password } = req.body; // On suppose que l'utilisateur se reconnecte avant de modifier ses points
+  const { points } = req.body;
 
-  if (!email || !password) {
-    res.status(400).json({ message: 'Email and password are required.' });
+  if (!id || points === undefined) {
+    res.status(400).json({ message: 'ID and points are required.' });
     return;
   }
 
   try {
-    // Vérification des informations d'identification
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findByPk(id);
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      res.status(401).json({ message: 'Invalid email or password.' });
-      return;
-    }
-
-    // Si l'utilisateur est authentifié, mise à jour des points
-    const targetUser = await User.findByPk(id);
-
-    if (!targetUser) {
+    if (!user) {
       res.status(404).json({ message: 'User not found.' });
       return;
     }
 
-    targetUser.points += 1; // Incrémenter les points
-    await targetUser.save();
+    user.points += points; // Incrémenter les points
+    await user.save();
 
-    res.status(200).json({ message: 'Points updated successfully.', points: targetUser.points });
+    res.status(200).json({ message: 'Points updated successfully.', points: user.points });
   } catch (error) {
     console.error('Error updating points:', error);
     res.status(500).json({ message: 'Failed to update points.' });
@@ -204,6 +202,31 @@ app.get('/api/leaderboard', async (req: Request, res: Response): Promise<void> =
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
     res.status(500).json({ message: 'Failed to fetch leaderboard.' });
+  }
+});
+
+// Supprimer les utilisateurs en double
+app.delete('/api/users/duplicates', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await User.findAll();
+    const usernames = users.map(user => user.username);
+    const duplicateUsernames = usernames.filter((username, index) => usernames.indexOf(username) !== index);
+
+    const emails = users.map(user => user.email);
+    const duplicateEmails = emails.filter((email, index) => emails.indexOf(email) !== index);
+
+    if (duplicateUsernames.length > 0) {
+      await User.destroy({ where: { username: duplicateUsernames } });
+    }
+
+    if (duplicateEmails.length > 0) {
+      await User.destroy({ where: { email: duplicateEmails } });
+    }
+
+    res.status(200).json({ message: 'Duplicate users deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting duplicate users:', error);
+    res.status(500).json({ message: 'Failed to delete duplicate users.' });
   }
 });
 

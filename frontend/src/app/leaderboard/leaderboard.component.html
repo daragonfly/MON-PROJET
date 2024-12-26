@@ -1,0 +1,10 @@
+<div class="leaderboard-container">
+    <h2>Leaderboard</h2>
+    <ul>
+      <li *ngFor="let user of leaderboard">
+        {{ user.username }}: {{ user.points }} points
+      </li>
+    </ul>
+    <button (click)="addPoint()">Add Point</button>
+  </div>
+  
