@@ -6,17 +6,24 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { LoginComponent } from './login/login.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ChartModule } from 'angular-highcharts';
+import { AgGridModule } from 'ag-grid-angular'; // Importer AgGridModule
+import { LeaderboardComponent } from './leaderboard/leaderboard.component'; 
+import { ClientSideRowModelModule } from 'ag-grid-community';
 
 @NgModule({
   declarations: [
+    
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FormsModule
+    FormsModule,
+    ChartModule,
+    LeaderboardComponent,
+    AgGridModule,
   ],
   providers: [],
-  bootstrap: []
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,9 +1,18 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { EventService } from '../event.service';
-import { CommonModule } from '@angular/common'; // Importer CommonModule
+import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../auth.service';
+import { AgGridAngular } from 'ag-grid-angular';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
+import { ModuleRegistry } from '@ag-grid-community/core';
+import { GridApi, GridReadyEvent, ColDef } from 'ag-grid-community';
+import Highcharts from 'highcharts';
+import { HighchartsChartModule } from 'highcharts-angular';
+
+// Enregistrer les modules nécessaires pour ag-Grid
+ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 interface LeaderboardUser {
   id: number;
@@ -16,11 +25,45 @@ interface LeaderboardUser {
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.css'],
   standalone: true,
-  imports: [CommonModule] // Ajouter CommonModule ici
+  imports: [CommonModule, AgGridAngular, HighchartsChartModule]
 })
-export class LeaderboardComponent implements OnInit, OnDestroy {
+export class LeaderboardComponent implements OnInit, OnDestroy, AfterViewInit {
   leaderboard: LeaderboardUser[] = [];
-  scoreUpdatedSubscription: Subscription = new Subscription(); // Initialiser la souscription
+  scoreUpdatedSubscription: Subscription = new Subscription();
+  private gridApi!: GridApi;
+
+  colDefs: ColDef[] = [
+    { headerName: 'Id', field: 'id', minWidth: 100 },
+    { headerName: 'Username', field: 'username', minWidth: 200 },
+    { headerName: 'Points', field: 'points', minWidth: 100 }
+  ];
+
+  Highcharts: typeof Highcharts = Highcharts;
+  chartOptions: Highcharts.Options = {
+    chart: {
+      type: 'bar',
+      renderTo: 'chart-container' // Référence au conteneur HTML
+    },
+    title: {
+      text: 'Leaderboard Points'
+    },
+    xAxis: {
+      categories: [],
+      title: {
+        text: 'Users'
+      }
+    },
+    yAxis: {
+      title: {
+        text: 'Points'
+      }
+    },
+    series: [{
+      type: 'bar',
+      name: 'Points',
+      data: []
+    }]
+  };
 
   constructor(private http: HttpClient, private eventService: EventService, private authService: AuthService) {}
 
@@ -29,6 +72,11 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     this.scoreUpdatedSubscription = this.eventService.scoreUpdated$.subscribe(() => {
       this.fetchLeaderboard();
     });
+  }
+
+  ngAfterViewInit(): void {
+    // S'assurer que l'élément DOM est prêt avant d'initialiser le graphique
+    this.updateChart(this.leaderboard);
   }
 
   ngOnDestroy(): void {
@@ -42,6 +90,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       .subscribe(
         (data) => {
           this.leaderboard = data;
+          this.updateChart(data);
         },
         (error) => {
           console.error('Error fetching leaderboard', error);
@@ -49,14 +98,41 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       );
   }
 
+  onGridReady(params: GridReadyEvent): void {
+    this.gridApi = params.api;
+  }
+
+  updateChart(data: LeaderboardUser[]): void {
+    const categories = data.map(user => user.username);
+    const points = data.map(user => user.points);
+
+    // Vérification du type de xAxis avant d'accéder à categories
+    if (Array.isArray(this.chartOptions.xAxis)) {
+      // Si xAxis est un tableau (cas rare), vous devez vérifier le bon élément
+      this.chartOptions.xAxis[0].categories = categories;
+    } else {
+      // Si xAxis est un objet unique
+      (this.chartOptions.xAxis as Highcharts.XAxisOptions).categories = categories;
+    }
+
+    const series = this.chartOptions.series![0] as Highcharts.SeriesBarOptions;
+    series.data = points;
+
+    // Mettre à jour le graphique
+    const chartContainer = document.getElementById(this.chartOptions.chart!.renderTo as string);
+    if (chartContainer) {
+      Highcharts.chart(chartContainer, this.chartOptions);
+    }
+  }
+
   addPoint(): void {
-    const userId = this.authService.getUserId(); // Récupérer l'ID de l'utilisateur connecté
+    const userId = this.authService.getUserId();
     if (userId) {
       this.http.put(`http://localhost:3010/api/users/${userId}/points`, { points: 1 }, { responseType: 'text' })
         .subscribe(
           () => {
             console.log('Point added successfully.');
-            this.eventService.announceScoreUpdated(); // Émettre un événement
+            this.eventService.announceScoreUpdated();
           },
           (error) => {
             console.error('Error adding point', error);
