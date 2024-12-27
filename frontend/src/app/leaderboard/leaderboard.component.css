@@ -1,0 +1,63 @@
+/* Styles pour le conteneur du leaderboard */
+.leaderboard-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+  }
+  
+  /* Styles pour le titre du leaderboard */
+  .leaderboard-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Styles pour la liste des utilisateurs */
+  .leaderboard-container ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  /* Styles pour chaque élément de la liste */
+  .leaderboard-container li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .leaderboard-container li:last-child {
+    border-bottom: none;
+  }
+  
+  /* Styles pour les noms d'utilisateur */
+  .leaderboard-container .username {
+    font-weight: bold;
+  }
+  
+  /* Styles pour les points */
+  .leaderboard-container .points {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+  
+  /* Styles pour les rangs */
+  .leaderboard-container .rank {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-right: 10px;
+  }
+  
+  /* Styles pour les rangs impairs */
+  .leaderboard-container li:nth-child(odd) {
+    background-color: #f1f1f1;
+  }
+  

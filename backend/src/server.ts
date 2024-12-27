@@ -60,9 +60,16 @@ app.post('/api/users', async (req: Request, res: Response): Promise<void> => {
 
   try {
     // Vérifier si l'email existe déjà
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
+    const existingUserByEmail = await User.findOne({ where: { email } });
+    if (existingUserByEmail) {
       res.status(400).json({ message: 'Email already in use' });
+      return;
+    }
+
+    // Vérifier si le nom d'utilisateur existe déjà
+    const existingUserByUsername = await User.findOne({ where: { username } });
+    if (existingUserByUsername) {
+      res.status(400).json({ message: 'Username already in use' });
       return;
     }
 
@@ -90,6 +97,7 @@ app.post('/api/users', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: 'Failed to create user' });
   }
 });
+
 
 app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
   const { username, email, password } = req.body;
