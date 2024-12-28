@@ -13,7 +13,7 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3010/api'; // Assurez-vous que l'URL est correcte
+  private apiUrl = 'http://localhost:3010/api'; 
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -21,8 +21,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
       tap(response => {
         if (response && response.token) {
-          localStorage.setItem('token', response.token); // Stockez le token dans le localStorage
-          this.router.navigate(['/game']); // Rediriger vers la page game
+          localStorage.setItem('token', response.token); // Store the token in the local storage
+          this.router.navigate(['/game']); 
         }
       })
     );

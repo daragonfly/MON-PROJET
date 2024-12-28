@@ -11,7 +11,6 @@ import { GridApi, GridReadyEvent, ColDef } from 'ag-grid-community';
 import Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 
-// Enregistrer les modules nécessaires pour ag-Grid
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 interface LeaderboardUser {
@@ -42,7 +41,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy, AfterViewInit {
   chartOptions: Highcharts.Options = {
     chart: {
       type: 'bar',
-      renderTo: 'chart-container' // Référence au conteneur HTML
+      renderTo: 'chart-container' 
     },
     title: {
       text: 'Leaderboard Points'
@@ -75,7 +74,6 @@ export class LeaderboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // S'assurer que l'élément DOM est prêt avant d'initialiser le graphique
     this.updateChart(this.leaderboard);
   }
 
@@ -106,19 +104,16 @@ export class LeaderboardComponent implements OnInit, OnDestroy, AfterViewInit {
     const categories = data.map(user => user.username);
     const points = data.map(user => user.points);
 
-    // Vérification du type de xAxis avant d'accéder à categories
     if (Array.isArray(this.chartOptions.xAxis)) {
-      // Si xAxis est un tableau (cas rare), vous devez vérifier le bon élément
       this.chartOptions.xAxis[0].categories = categories;
     } else {
-      // Si xAxis est un objet unique
       (this.chartOptions.xAxis as Highcharts.XAxisOptions).categories = categories;
     }
 
     const series = this.chartOptions.series![0] as Highcharts.SeriesBarOptions;
     series.data = points;
 
-    // Mettre à jour le graphique
+    //Update the chart
     const chartContainer = document.getElementById(this.chartOptions.chart!.renderTo as string);
     if (chartContainer) {
       Highcharts.chart(chartContainer, this.chartOptions);

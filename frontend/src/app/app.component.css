@@ -1,34 +1,26 @@
-/* Conteneur de la navigation */
 .navbar {
   display: flex;
-  justify-content: center; /* Centre les liens horizontalement */
-  background-color: #333; /* Couleur de fond de la barre de navigation */
-  padding: 10px 0; /* Espacement autour de la barre de navigation */
+  justify-content: center;
+  background-color: #333;
+  padding: 10px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Style pour chaque lien de navigation */
 .nav-link {
-  text-decoration: none; /* Enlève le soulignement par défaut */
-  color: white; /* Couleur du texte */
-  font-size: 18px; /* Taille de la police */
-  margin: 0 15px; /* Espacement entre les liens */
-  padding: 8px 16px; /* Espacement autour du texte */
-  border-radius: 5px; /* Coins arrondis */
-  transition: background-color 0.3s, color 0.3s; /* Effet de transition pour hover */
+  text-decoration: none;
+  color: white;
+  font-size: 18px;
+  margin: 0 15px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Effet au survol du lien */
 .nav-link:hover {
-  background-color: #4CAF50; /* Couleur de fond au survol */
-  color: #fff; /* Change la couleur du texte au survol */
+  background-color: #4CAF50;
+  color: #fff;
 }
 
-/* Ajouter une petite ombre pour donner un effet 3D */
-.navbar {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
-}
-
-/* Style pour l'élément router-outlet (si besoin de personnalisation supplémentaire) */
 router-outlet {
-  margin-top: 20px; /* Espacement au-dessus de la page rendue */
+  margin-top: 20px;
 }

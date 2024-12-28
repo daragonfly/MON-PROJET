@@ -6,11 +6,10 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:3010/api'; // Assurez-vous que l'URL est correcte
+  private apiUrl = 'http://localhost:3010/api';
 
   constructor(private http: HttpClient) {}
 
-  // Méthode pour récupérer tous les utilisateurs
   getUsers(): Observable<any> {
     console.log("demande");
     return this.http.get(`${this.apiUrl}/users`);

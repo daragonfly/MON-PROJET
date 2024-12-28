@@ -1,17 +1,40 @@
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-import sequelize from './config/sequelize'; // Importer l'instance Sequelize
+import sequelize from './config/sequelize';
 import User from './models/User';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Op } from 'sequelize'; // Importer Op depuis Sequelize
-dotenv.config(); // Charger les variables d'environnement
+import { Op } from 'sequelize';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+
+dotenv.config();
 
 const cors = require('cors');
 const app = express();
 
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API Documentation',
+      version: '1.0.0',
+      description: 'API documentation for the application',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3010',
+      },
+    ],
+  },
+  apis: ['./src/*.ts'],
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 app.use(cors());
-// Initialiser l'application Express
+
 const port = process.env.PORT || 3010;
 app.use(express.json());
 
@@ -27,10 +50,47 @@ sequelize.sync({ force: false })
     console.error('❌ Error synchronizing database:', err.message);
   });
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: number
+ *           description: The user ID
+ *         username:
+ *           type: string
+ *           description: The username of the user
+ *         email:
+ *           type: string
+ *           description: The email of the user
+ *         points:
+ *           type: number
+ *           description: The points of the user
+ */
+
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ */
+
 app.get('/api/users', async (req: Request, res: Response) => {
   try {
     const users = await User.findAll();
-    console.log('Users fetched:', users); // Ajoute ce log pour vérifier
+    console.log('Users fetched:', users); // Add this log to verify
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -49,42 +109,79 @@ app.get('/api/package', (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: Create a new user
+ *     description: Creates a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               points:
+ *                 type: number
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Failed to create user
+ */
 app.post('/api/users', async (req: Request, res: Response): Promise<void> => {
   const { username, email, password, points } = req.body;
 
-  // Vérifier que tous les champs nécessaires sont présents
+  // Check if all required fields are present
   if (!username || !email || !password) {
     res.status(400).json({ message: 'Username, email, and password are required.' });
     return;
   }
 
   try {
-    // Vérifier si l'email existe déjà
+    // Check if email already exists
     const existingUserByEmail = await User.findOne({ where: { email } });
     if (existingUserByEmail) {
       res.status(400).json({ message: 'Email already in use' });
       return;
     }
 
-    // Vérifier si le nom d'utilisateur existe déjà
+    // Check if username already exists
     const existingUserByUsername = await User.findOne({ where: { username } });
     if (existingUserByUsername) {
       res.status(400).json({ message: 'Username already in use' });
       return;
     }
 
-    // Hacher le mot de passe avant de l'enregistrer
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Créer l'utilisateur
+    // Create the user
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
-      points: points || 0, // Valeur par défaut pour points
+      points: points || 0, // Default value for points
     });
 
-    // Réponse avec l'utilisateur créé (sans le mot de passe)
+    // Respond with the created user (without the password)
     res.status(201).json({
       id: newUser.id,
       username: newUser.username,
@@ -93,41 +190,75 @@ app.post('/api/users', async (req: Request, res: Response): Promise<void> => {
     });
 
   } catch (error) {
-    console.error('Erreur lors de la création de l\'utilisateur:', error);
+    console.error('Error creating user:', error);
     res.status(500).json({ message: 'Failed to create user' });
   }
 });
 
-
+/**
+ * @swagger
+ * /api/signup:
+ *   post:
+ *     summary: Sign up a new user
+ *     description: Creates a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Failed to create user
+ */
 app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
   const { username, email, password } = req.body;
 
-  // Vérifier que tous les champs nécessaires sont présents
+  // Check if all required fields are present
   if (!username || !email || !password) {
     res.status(400).json({ message: 'Username, email, and password are required.' });
     return;
   }
 
   try {
-    // Vérifier si l'email existe déjà
+    // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: 'Email already in use' });
       return;
     }
 
-    // Hacher le mot de passe avant de l'enregistrer
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Créer l'utilisateur
+    // Create the user
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
-      points: 0, // Points par défaut
+      points: 0, // Default points
     });
 
-    // Répondre avec l'utilisateur créé (sans le mot de passe)
+    // Respond with the created user (without the password)
     res.status(201).json({
       id: newUser.id,
       username: newUser.username,
@@ -140,6 +271,43 @@ app.post('/api/signup', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+/**
+ * @swagger
+ * /api/login:
+ *   post:
+ *     summary: Log in a user
+ *     description: Logs in a user and returns a JWT token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identifier:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *             required:
+ *               - identifier
+ *               - password
+ *     responses:
+ *       200:
+ *         description: Logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Invalid identifier or password
+ *       500:
+ *         description: Failed to log in user
+ */
 app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
   const { identifier, password } = req.body;
 
@@ -156,10 +324,10 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Générer un token JWT
+    // Generate a JWT token
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your_jwt_secret', { expiresIn: '1h' });
 
-    // Réponse avec le token
+    // Respond with the token
     res.status(200).json({
       token,
       user: { id: user.id, username: user.username, email: user.email, points: user.points },
@@ -170,6 +338,49 @@ app.post('/api/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+/**
+ * @swagger
+ * /api/users/{id}/points:
+ *   put:
+ *     summary: Update user points
+ *     description: Updates the points of a user
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               points:
+ *                 type: number
+ *             required:
+ *               - points
+ *     responses:
+ *       200:
+ *         description: Points updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 points:
+ *                   type: number
+ *       400:
+ *         description: ID and points are required
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to update points
+ */
 app.put('/api/users/:id/points', async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { points } = req.body;
@@ -187,7 +398,7 @@ app.put('/api/users/:id/points', async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    user.points += points; // Incrémenter les points
+    user.points += points; // Increment points
     await user.save();
 
     res.status(200).json({ message: 'Points updated successfully.', points: user.points });
@@ -197,13 +408,29 @@ app.put('/api/users/:id/points', async (req: Request, res: Response): Promise<vo
   }
 });
 
-
-// Route pour récupérer le leaderboard
+/**
+ * @swagger
+ * /api/leaderboard:
+ *   get:
+ *     summary: Get leaderboard
+ *     description: Retrieves the leaderboard
+ *     responses:
+ *       200:
+ *         description: A list of users sorted by points
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Failed to fetch leaderboard
+ */
 app.get('/api/leaderboard', async (req: Request, res: Response): Promise<void> => {
   try {
     const leaderboard = await User.findAll({
-      order: [['points', 'DESC']], // Tri par points décroissants
-      attributes: ['id', 'username', 'points'], // Sélectionner les colonnes nécessaires
+      order: [['points', 'DESC']],
+      attributes: ['id', 'username', 'points'],
     });
 
     res.status(200).json(leaderboard);
@@ -213,7 +440,18 @@ app.get('/api/leaderboard', async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// Supprimer les utilisateurs en double
+/**
+ * @swagger
+ * /api/users/duplicates:
+ *   delete:
+ *     summary: Delete duplicate users
+ *     description: Deletes duplicate users based on username and email
+ *     responses:
+ *       200:
+ *         description: Duplicate users deleted successfully
+ *       500:
+ *         description: Failed to delete duplicate users
+ */
 app.delete('/api/users/duplicates', async (req: Request, res: Response): Promise<void> => {
   try {
     const users = await User.findAll();
@@ -238,7 +476,7 @@ app.delete('/api/users/duplicates', async (req: Request, res: Response): Promise
   }
 });
 
-// Lancer le serveur
+// Start the server
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
 });

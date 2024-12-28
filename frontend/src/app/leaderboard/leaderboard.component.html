@@ -1,7 +1,7 @@
 <div class="container">
   <h1>Leaderboard</h1>
   
-  <!-- Ag-Grid pour afficher le leaderboard -->
+  <!-- Use of Ag-grid -->
   <ag-grid-angular
     style="width: 100%; height: 400px;"
     class="ag-theme-alpine"
@@ -11,9 +11,8 @@
     (gridReady)="onGridReady($event)">
   </ag-grid-angular>
 
-  <!-- Bouton pour ajouter un point -->
   <button class="add-point-btn" (click)="addPoint()">Add Point</button>
 
-  <!-- Conteneur pour le graphique Highcharts -->
+  <!-- Use of bar options of highcharts -->
   <div id="chart-container" style="height: 400px; width: 100%;"></div>
 </div>

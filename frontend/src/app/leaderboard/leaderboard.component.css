@@ -1,19 +1,19 @@
 .container {
     display: flex;
     flex-direction: column;
-    align-items: center;  /* Centre horizontalement */
-    justify-content: center;  /* Centre verticalement */
-    height: 100vh; /* Utilise la hauteur complète de la fenêtre */
+    align-items: center; 
+    justify-content: center; 
+    height: 100vh; 
     padding: 20px;
   }
   
   .ag-theme-alpine {
     width: 100%;
-    height: 400px; /* Ajustez la hauteur du grid si nécessaire */
+    height: 400px; 
   }
   
   .add-point-btn {
-    margin: 20px 0; /* Espacement autour du bouton */
+    margin: 20px 0; 
     padding: 10px 20px;
     font-size: 16px;
     background-color: #4CAF50;
@@ -29,6 +29,7 @@
   
   #chart-container {
     width: 100%;
-    height: 400px; /* Ajustez la hauteur du graphique */
+    height: 400px;
+    
   }
   

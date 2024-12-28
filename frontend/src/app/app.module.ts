@@ -13,7 +13,7 @@ import { ClientSideRowModelModule } from 'ag-grid-community';
 
 @NgModule({
   declarations: [
-    
+    //no one because standone is true
   ],
   imports: [
     BrowserModule,

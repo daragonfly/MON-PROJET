@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [FormsModule] // Ajouter FormsModule ici
+  imports: [FormsModule]
 })
 export class LoginComponent {
   identifier: string = '';

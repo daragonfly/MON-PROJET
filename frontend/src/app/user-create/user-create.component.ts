@@ -2,15 +2,15 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { ReactiveFormsModule } from '@angular/forms'; // Importer ReactiveFormsModule
-import { CommonModule } from '@angular/common'; // Importer CommonModule
+import { ReactiveFormsModule } from '@angular/forms'; 
+import { CommonModule } from '@angular/common'; 
 
 @Component({
   selector: 'app-user-create',
   templateUrl: './user-create.component.html',
   styleUrls: ['./user-create.component.css'],
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule] // Ajouter ReactiveFormsModule et CommonModule ici
+  imports: [ReactiveFormsModule, CommonModule]
 })
 export class UserCreateComponent {
   userForm: FormGroup;

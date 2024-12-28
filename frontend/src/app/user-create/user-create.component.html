@@ -2,9 +2,10 @@
   <h2>Create User</h2>
   <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
     <div>
+      <!-- Check what the error is during the creation -->
       <label for="username">Username:</label>
       <input type="text" id="username" formControlName="username" required>
-      <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched">
+      <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched"> 
         <small *ngIf="userForm.get('username')?.errors?.['required']">Username is required.</small>
         <small *ngIf="userForm.get('username')?.errors?.['minlength']">Username must be at least 3 characters long.</small>
       </div>

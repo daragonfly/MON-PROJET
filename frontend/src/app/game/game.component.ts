@@ -21,13 +21,13 @@ export class GameComponent implements OnInit {
   }
 
   updateScore(): void {
-    const userId = this.authService.getUserId(); // Récupérer l'ID de l'utilisateur connecté
+    const userId = this.authService.getUserId(); // Take the user id from the token
     if (userId) {
       this.http.put(`http://localhost:3010/api/users/${userId}/points`, { points: 1 }, { responseType: 'text' })
         .subscribe(
           () => {
-            console.log('Point added successfully.');
-            this.eventService.announceScoreUpdated(); // Émettre un événement
+            console.log('Point added successfully.'); // Log the success
+            this.eventService.announceScoreUpdated();
           },
           (error) => {
             console.error('Error adding point', error);
