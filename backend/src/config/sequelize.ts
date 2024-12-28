@@ -1,17 +1,17 @@
 import { Sequelize } from 'sequelize';
 import * as dotenv from 'dotenv';
 
-dotenv.config(); // Charger les variables d'environnement
+dotenv.config(); 
 
 const sequelize = new Sequelize(
-    process.env.DB_NAME!, // Utilisation de "!" pour dire à TypeScript que cette variable est définie
+    process.env.DB_NAME!,
     process.env.DB_USER!,
     process.env.DB_PASSWORD!,
     {
-      host: process.env.DB_HOST || 'localhost', // Utiliser 'localhost' par défaut si l'hôte n'est pas défini
+      host: process.env.DB_HOST || 'localhost', 
       dialect: 'postgres',
     }
   );
   
 
-export default sequelize; // Exporter l'instance de Sequelize
+export default sequelize;
