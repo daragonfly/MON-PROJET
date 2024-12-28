@@ -31,27 +31,26 @@ User.init(
     },
     points: {
       type: DataTypes.INTEGER,
-      defaultValue: 0, // Valeur par défaut de points
+      defaultValue: 0, 
     },
   },
   {
-    sequelize, // L'instance Sequelize
-    modelName: 'User', // Nom du modèle
-    tableName: 'users', // Nom de la table dans la base de données
+    sequelize, 
+    modelName: 'User',
+    tableName: 'users', 
   }
 );
 export default User;
 
 const insertUser = async () => {
   try {
-    // Synchroniser le modèle avec la base de données (si nécessaire)
+  
     await sequelize.sync();
 
-    // Créer un utilisateur
     const user = await User.create({
       username: 'admin',
       email: 'admin',
-      password: 'admin',  // Assure-toi de hasher les mots de passe dans un vrai cas d'utilisation
+      password: 'admin',  
       points: 100,
     });
 
@@ -59,11 +58,9 @@ const insertUser = async () => {
   } catch (error) {
     console.error('Erreur lors de l\'insertion de l\'utilisateur:', error);
   } finally {
-    // Fermer la connexion Sequelize
     await sequelize.close();
   }
 };
-
-// Exécuter la fonction pour insérer un utilisateur
+//if need to insert user
 // insertUser();
 
